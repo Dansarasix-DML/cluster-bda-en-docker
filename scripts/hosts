@@ -1,0 +1,5 @@
+127.0.0.1   localhost
+master      master
+worker1     worker1
+worker2     worker2
+worker3     worker3

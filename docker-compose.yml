@@ -1,0 +1,58 @@
+version: "3.8"
+
+services:
+  master:
+    build: .
+    container_name: master
+    hostname: master
+    ports:
+      - "2222:22" # acceso SSH
+      - "8088:8088" # acceso a la interfaz web de Hadoop
+      - "9870:9870" # acceso a la interfaz web de HDFS
+    volumes:
+      - ./scripts:/scripts
+      - ./scripts/hosts:/etc/hosts
+    command: ["/bin/bash", "/scripts/entrypoint.sh", "master"]
+    tty: true
+    networks:
+      - bigdata
+
+  worker1:
+    build: .
+    container_name: worker1
+    hostname: worker1
+    volumes:
+      - ./scripts:/scripts
+      - ./scripts/hosts:/etc/hosts
+    command: ["/bin/bash", "/scripts/entrypoint.sh", "worker"]
+    tty: true
+    networks:
+      - bigdata
+
+  worker2:
+    build: .
+    container_name: worker2
+    hostname: worker2
+    volumes:
+      - ./scripts:/scripts
+      - ./scripts/hosts:/etc/hosts
+    command: ["/bin/bash", "/scripts/entrypoint.sh", "worker"]
+    tty: true
+    networks:
+      - bigdata
+
+  worker3:
+    build: .
+    container_name: worker3
+    hostname: worker3
+    volumes:
+      - ./scripts:/scripts
+      - ./scripts/hosts:/etc/hosts
+    command: ["/bin/bash", "/scripts/entrypoint.sh", "worker"]
+    tty: true
+    networks:
+      - bigdata
+
+networks:
+  bigdata:
+    driver: bridge
