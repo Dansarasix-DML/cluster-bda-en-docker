@@ -7,8 +7,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
     openjdk-8-jdk \
     net-tools \
+    mysql-client \
+    python3-pip \
     ssh rsync wget curl nano net-tools iputils-ping vim sudo \
     && apt-get clean
+
+RUN pip install pandas pyarrow kafka-python numpy==1.26.4 --force-reinstall
 
 # Establecer JAVA_HOME
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
@@ -78,11 +82,11 @@ RUN mkdir -p /home/hadoop/.ssh && \
     chmod 600 /home/hadoop/.ssh/authorized_keys
 
 
-
-
 # Abrir puerto SSH y definir CMD
 EXPOSE 22
 
+COPY scripts/entrypoint.sh /scripts/entrypoint.sh
+RUN chmod +x /scripts/entrypoint.sh
 COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
