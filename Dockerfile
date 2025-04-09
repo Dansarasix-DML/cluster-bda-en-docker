@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Instalar Java, SSH y utilidades
 RUN apt-get update && apt-get install -y \
     openjdk-8-jdk \
-    net-tools \
+    unzip \
     mysql-client \
     python3-pip \
     ssh rsync wget curl nano net-tools iputils-ping vim sudo \
@@ -39,6 +39,41 @@ RUN wget https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SP
 # Variables de entorno para Spark
 ENV SPARK_HOME=/opt/hadoop/spark
 ENV PATH=$PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin
+
+# Descargar Kafka 3.9.0 (actual)
+ENV KAFKA_VERSION_1=3.9.0
+RUN wget https://downloads.apache.org/kafka/${KAFKA_VERSION_1}/kafka_2.13-${KAFKA_VERSION_1}.tgz && \
+    tar -xzf kafka_2.13-${KAFKA_VERSION_1}.tgz && \
+    mv kafka_2.13-${KAFKA_VERSION_1} /opt/kafka_3.9.0 && \
+    rm kafka_2.13-${KAFKA_VERSION_1}.tgz
+
+# Descargar Kafka 4.0.0 (respaldo)
+ENV KAFKA_VERSION_2=4.0.0
+RUN wget https://downloads.apache.org/kafka/${KAFKA_VERSION_2}/kafka_2.13-${KAFKA_VERSION_2}.tgz && \
+    tar -xzf kafka_2.13-${KAFKA_VERSION_2}.tgz && \
+    mv kafka_2.13-${KAFKA_VERSION_2} /opt/kafka_4.0.0 && \
+    rm kafka_2.13-${KAFKA_VERSION_2}.tgz
+
+RUN mkdir -p /opt/kafka_plugins
+
+# Desgargar Kafka Connect
+ENV KAFKA_CONNECT_VERSION=10.8.2
+ENV MYSQL_CONNECTOR_VERSION=9.2.0
+ENV HADOOP_CONNECTOR_VERSION=1.2.3
+
+RUN wget https://hub-downloads.confluent.io/api/plugins/confluentinc/kafka-connect-jdbc/versions/${KAFKA_CONNECT_VERSION}/confluentinc-kafka-connect-jdbc-${KAFKA_CONNECT_VERSION}.zip && \
+    unzip confluentinc-kafka-connect-jdbc-${KAFKA_CONNECT_VERSION}.zip && \
+    mv confluentinc-kafka-connect-jdbc-${KAFKA_CONNECT_VERSION} /opt/kafka_plugins && \
+    rm confluentinc-kafka-connect-jdbc-${KAFKA_CONNECT_VERSION}.zip && \
+    wget https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-${MYSQL_CONNECTOR_VERSION}.tar.gz && \
+    tar -xzf mysql-connector-j-${MYSQL_CONNECTOR_VERSION}.tar.gz && \
+    mv mysql-connector-j-${MYSQL_CONNECTOR_VERSION} /opt/kafka_plugins/mysql-connector-j && \
+    rm mysql-connector-j-${MYSQL_CONNECTOR_VERSION}.tar.gz && \
+    wget https://hub-downloads.confluent.io/api/plugins/confluentinc/kafka-connect-hdfs3/versions/${HADOOP_CONNECTOR_VERSION}/confluentinc-kafka-connect-hdfs3-${HADOOP_CONNECTOR_VERSION}.zip && \
+    unzip confluentinc-kafka-connect-hdfs3-${HADOOP_CONNECTOR_VERSION}.zip && \
+    mv confluentinc-kafka-connect-hdfs3-${HADOOP_CONNECTOR_VERSION} /opt/kafka_plugins && \
+    rm confluentinc-kafka-connect-hdfs3-${HADOOP_CONNECTOR_VERSION}.zip
+
 
 # Crear usuario 'hadoop' con bash y permisos sudo
 RUN useradd -m -s /bin/bash hadoop && \
@@ -83,7 +118,8 @@ WORKDIR /home/hadoop
 RUN mkdir -p /opt/hadoop/hadoop_data/hdfs/namenode && \
     mkdir -p /opt/hadoop/hadoop_data/hdfs/datanode && \
     mkdir -p /opt/hadoop/hadoop_data/hdfs/secondary_namenode && \
-    chown -R hadoop:hadoop /opt/hadoop/hadoop_data
+    chown -R hadoop:hadoop /opt/hadoop/hadoop_data && \
+    chown -R hadoop:hadoop /opt/kafka_plugins
 
 # Crear el directorio de logs y establecer permisos
 RUN mkdir -p /opt/hadoop/logs && \
