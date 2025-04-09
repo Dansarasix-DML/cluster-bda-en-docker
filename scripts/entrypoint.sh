@@ -11,6 +11,11 @@ cp /scripts/yarn-site.xml $HADOOP_HOME/etc/hadoop/yarn-site.xml
 cp /scripts/mapred-site.xml $HADOOP_HOME/etc/hadoop/mapred-site.xml
 cp /scripts/workers $HADOOP_HOME/etc/hadoop/workers
 
+# Configurar Spark
+mkdir -p $SPARK_HOME/conf
+cp /scripts/spark/spark-env.sh $SPARK_HOME/conf/
+cp /scripts/spark/workers $SPARK_HOME/conf/workers
+
 # Verifica que se haya pasado un rol válido
 if [ -z "$ROLE" ]; then
     echo "ERROR: No role specified. Use 'master' or 'worker'."

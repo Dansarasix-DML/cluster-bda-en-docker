@@ -1,24 +1,15 @@
 version: "3.8"
 
 services:
-  mysql:
-    image: mysql:8
-    container_name: mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-    ports:
-      - "3306:3306"
-    networks:
-      - bigdata
-
   master:
     build: .
     container_name: master
     hostname: master
     ports:
       - "2222:22" # acceso SSH
-      - "8088:8088" # acceso a la interfaz web de Hadoop
+      - "8088:8088" # acceso a la interfaz web de Yarn
       - "9870:9870" # acceso a la interfaz web de HDFS
+      - "8090:8080" # acceso a la interfaz web de Spark
     volumes:
       - ./scripts:/scripts
       - ./scripts/hosts:/etc/hosts
@@ -60,6 +51,16 @@ services:
       - ./scripts/hosts:/etc/hosts
     command: ["/bin/bash", "/scripts/entrypoint.sh", "worker"]
     tty: true
+    networks:
+      - bigdata
+
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
     networks:
       - bigdata
 

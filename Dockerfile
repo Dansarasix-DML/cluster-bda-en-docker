@@ -19,7 +19,7 @@ ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 ENV PATH=$PATH:$JAVA_HOME/bin
 
 # Descargar e instalar Hadoop
-ENV HADOOP_VERSION=3.3.6
+ENV HADOOP_VERSION=3.4.1
 RUN wget https://downloads.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz && \
     tar -xvzf hadoop-${HADOOP_VERSION}.tar.gz && mv hadoop-${HADOOP_VERSION} /opt/hadoop && \
     rm hadoop-${HADOOP_VERSION}.tar.gz
@@ -27,6 +27,18 @@ RUN wget https://downloads.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/had
 # Establecer variables de entorno de Hadoop
 ENV HADOOP_HOME=/opt/hadoop
 ENV PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+
+# Descargar e instalar Spark (sin Hadoop)
+ENV SPARK_VERSION=3.5.4
+
+RUN wget https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-without-hadoop.tgz && \
+    tar -xzf spark-${SPARK_VERSION}-bin-without-hadoop.tgz && \
+    mv spark-${SPARK_VERSION}-bin-without-hadoop /opt/hadoop/spark && \
+    rm spark-${SPARK_VERSION}-bin-without-hadoop.tgz
+
+# Variables de entorno para Spark
+ENV SPARK_HOME=/opt/hadoop/spark
+ENV PATH=$PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin
 
 # Crear usuario 'hadoop' con bash y permisos sudo
 RUN useradd -m -s /bin/bash hadoop && \
@@ -52,6 +64,11 @@ export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native\n\
 export PATH=$PATH:$HADOOP_HOME/sbin:$HADOOP_HOME/bin\n\
 export HADOOP_OPTS="-Djava.library.path=$HADOOP_HOME/lib/native"\n\
 ' >> /home/hadoop/.bashrc
+
+# Agregar variables de Spark al bashrc del usuario hadoop
+RUN echo 'export SPARK_HOME=/opt/hadoop/spark' >> /home/hadoop/.bashrc && \
+    echo 'export SPARK_DIST_CLASSPATH=$(hadoop classpath)' >> /home/hadoop/.bashrc && \
+    echo 'export PATH=$PATH:$SPARK_HOME/bin' >> /home/hadoop/.bashrc
 
 # Preparar carpeta de trabajo
 RUN mkdir -p /data /scripts && chown hadoop:hadoop /data /scripts
@@ -82,11 +99,11 @@ RUN mkdir -p /home/hadoop/.ssh && \
     chmod 600 /home/hadoop/.ssh/authorized_keys
 
 
+
+
 # Abrir puerto SSH y definir CMD
 EXPOSE 22
 
-COPY scripts/entrypoint.sh /scripts/entrypoint.sh
-RUN chmod +x /scripts/entrypoint.sh
 COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 

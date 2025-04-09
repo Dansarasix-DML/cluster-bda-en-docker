@@ -18,6 +18,13 @@ start-dfs.sh
 start-yarn.sh
 ```
 
+Luego ve a la carpeta (`$SPARK_HOME`) de spark e inicia el master y los workers.
+
+```
+./sbin/start-master.sh 
+./sbin/start-workers.sh
+```
+
 ### Comandos para ssh
 
 ```
